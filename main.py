@@ -3,7 +3,6 @@ import random
 import csv
 from operator import itemgetter
 
-USERNAME = 'wnsnk'
 
 pygame.init()
 pygame.font.init()
@@ -12,23 +11,29 @@ print(pygame.font.get_init())
 
 GAME_FONT = pygame.font.Font(pygame.font.get_default_font(), size=50)
 
+USERNAME = 'wnsnk'
 score = 0
+
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
-paddle_width = 300
-PADDLE_HEIGHT = 20
+
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption('Breakout')
 clock = pygame.time.Clock()
+delta_time = clock.tick(60) / 1000
+
 running = True
 game_over_ = False
-delta_time = clock.tick(60) / 1000
+
+paddle_width = 300
+PADDLE_HEIGHT = 20
 MOVEMENT_SPEED = 500
-ball_speed = 400
-ball_degrees = random.randint(-75, 75)
-ball_degrees = 75
 player_paddle = pygame.Rect((SCREEN_WIDTH / 2) - (paddle_width / 2),
                             SCREEN_HEIGHT - 100, paddle_width, PADDLE_HEIGHT)
 
+ball_speed = 400
+ball_degrees = random.randint(-75, 75)
+ball_degrees = 75
 ball_movement_x = ball_degrees * delta_time
 ball_movement_y = ball_speed * delta_time
 ball_position = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
@@ -182,20 +187,17 @@ count = 0
 color_num = 0
 
 while running:
-
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
-    # fill the screen with a color to wipe away anything from last frame
     screen.fill('black')
 
     pygame.draw.rect(screen, 'white', player_paddle)
+
     pygame.draw.circle(screen, 'white', ball_position, 10)
     ball_position.x += ball_movement_x
     ball_position.y += ball_movement_y
+
     for block in blocks:
         count += 1
         try:
@@ -215,25 +217,27 @@ while running:
             score += 5
 
     keys = pygame.key.get_pressed()
-
-    if keys[pygame.K_a]:
+    if keys[pygame.K_a] or keys[pygame.K_LEFT]:
         player_paddle.move_ip(-(MOVEMENT_SPEED * delta_time), 0)
-    if keys[pygame.K_d]:
+    if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
         player_paddle.move_ip(MOVEMENT_SPEED * delta_time, 0)
     if keys[pygame.K_p]:
         get_positions()
 
-    delta_time = clock.tick(60) / 1000
     check_paddle_wall_collision()
     check_ball_wall_collision()
     check_ball_paddle_collision()
 
+    # Scoreboard:
     scoreboard_text = f'Score: {score}'
     scoreboard = GAME_FONT.render(scoreboard_text, True, 'white')
     text_width, text_height = GAME_FONT.size(scoreboard_text)
     screen.blit(scoreboard, (0, (SCREEN_HEIGHT - text_height)))
+
     if game_over_:
         game_over()
+
+    delta_time = clock.tick(60) / 1000
     pygame.display.update()
 
 
