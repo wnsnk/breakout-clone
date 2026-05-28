@@ -1,4 +1,4 @@
-# Flask portfolio website
+# Breakout Clone
 ## Description
 This is a clone of the 80s hit game Breakout i made for the assignment on Day 87 of the 100 Days of Code course. 
 
