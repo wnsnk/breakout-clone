@@ -18,22 +18,36 @@ player_paddle = pygame.Rect((SCREEN_WIDTH / 2) - (PADDLE_WIDTH / 2),
 
 
 class Block():
-    def __init__(self, top: float, left: float):
-        self.width = 200
-        self.height = 25
-        self.rectangle = pygame.Rect(
-            top=top, left=left, width=self.width, height=self.height)
+    def __init__(self, Rect: pygame.Rect, hit_points):
+        self.rectangle = Rect
+        self.remove = False
+        self.hit_points = hit_points
+        if hit_points <= 0:
+            self.remove = True
+        elif self.hit_points <= 1:
+            self.color = 'purple'
+        elif self.hit_points <= 2:
+            self.color = 'blue'
+        elif self.hit_points <= 5:
+            self.color = 'green'
+        elif hit_points <= 10:
+            self.color = 'yellow'
+        elif self.hit_points <= 15:
+            self.color = 'orange'
+        else:
+            self.color = 'red'
 
 
-block_colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple']
+hit_points = [20, 15, 10, 5, 2, 1]
 BLOCK_WIDTH = ((SCREEN_WIDTH - 10) / 10) - 5
 BLOCK_HEIGHT = 20
 block_x = 10
 block_y = 20
 blocks = []
-for _ in range(len(block_colors)):
+for hp in hit_points:
     for _ in range(10):
         block = pygame.Rect(block_x, block_y, BLOCK_WIDTH, BLOCK_HEIGHT)
+        block = Block(block, hp)
         blocks.append(block)
         block_x += BLOCK_WIDTH + BLOCK_HEIGHT
     block_x = 10
@@ -42,6 +56,7 @@ for _ in range(len(block_colors)):
 
 count = 0
 color_num = 0
+
 
 while running:
     # poll for events
@@ -54,16 +69,17 @@ while running:
     screen.fill('black')
 
     pygame.draw.rect(screen, 'white', player_paddle)
+
     for block in blocks:
         count += 1
-        if count < len(blocks):
-            try:
-                pygame.draw.rect(screen, block_colors[color_num], block)
-            except IndexError:
-                color_num = 0
+
+        try:
+            pygame.draw.rect(
+                screen, block.color, block.rectangle)
+        except IndexError:
+            color_num = 0
         if count % 10 == 0:
             color_num += 1
-        # if count > len(blocks):
 
     keys = pygame.key.get_pressed()
 
