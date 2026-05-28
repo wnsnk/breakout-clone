@@ -125,7 +125,7 @@ def game_over():
                 writer.writerow(new_row)
                 highscores.append(new_row)
     except UnboundLocalError:
-        new_row = {'name': 'None', 'high_score': 0}
+        new_row = {'name': USERNAME, 'high_score': score}
         highscores = []
         highscores.append(new_row)
     highscores.sort(key=itemgetter('high_score'), reverse=True)
