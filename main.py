@@ -17,6 +17,15 @@ player_paddle = pygame.Rect((SCREEN_WIDTH / 2) - (PADDLE_WIDTH / 2),
                             SCREEN_HEIGHT - 100, PADDLE_WIDTH, PADDLE_HEIGHT)
 
 
+def check_paddle_wall_collision():
+    if player_paddle.left < 0:
+        print('hit wall left!!')
+        player_paddle.move_ip(MOVEMENT_SPEED * delta_time, 0)
+    elif (player_paddle.left + PADDLE_WIDTH) > SCREEN_WIDTH:
+        print('hit wall right!!')
+        player_paddle.move_ip(-MOVEMENT_SPEED * delta_time, 0)
+
+
 class Block():
     def __init__(self, Rect: pygame.Rect, hit_points):
         self.rectangle = Rect
@@ -94,6 +103,7 @@ while running:
     # dt is delta time in seconds since last frame, used for framerate-
     # independent physics.
     delta_time = clock.tick(60) / 1000
+    check_paddle_wall_collision()
     pygame.display.update()
 
 pygame.quit()
