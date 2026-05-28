@@ -1,9 +1,7 @@
 import pygame
-from paddle import PlayerPaddle
 import random
 import csv
 from operator import itemgetter
-import time
 
 USERNAME = 'wnsnk'
 
