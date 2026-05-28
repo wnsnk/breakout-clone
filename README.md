@@ -17,3 +17,7 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+
+## screenshots
+![Screenshot 1](/screenshots/breakout.png "Breakout Screenshot")
+![Screenshot 2](/screenshots/breakout%20highscores.png "Breakout highscores Screenshot")
