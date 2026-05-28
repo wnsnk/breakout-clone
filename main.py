@@ -1,22 +1,35 @@
 import pygame
 from paddle import PlayerPaddle
 import random
+import csv
+from operator import itemgetter
+import time
+
+USERNAME = 'wnsnk'
 
 pygame.init()
+pygame.font.init()
+
+print(pygame.font.get_init())
+
+GAME_FONT = pygame.font.Font(pygame.font.get_default_font(), size=50)
+
+score = 0
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
-PADDLE_WIDTH = 300
-PADDLE_HEIGHT = 30
+paddle_width = 300
+PADDLE_HEIGHT = 20
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
 running = True
+game_over_ = False
 delta_time = clock.tick(60) / 1000
 MOVEMENT_SPEED = 500
 ball_speed = 400
 ball_degrees = random.randint(-75, 75)
 ball_degrees = 75
-player_paddle = pygame.Rect((SCREEN_WIDTH / 2) - (PADDLE_WIDTH / 2),
-                            SCREEN_HEIGHT - 100, PADDLE_WIDTH, PADDLE_HEIGHT)
+player_paddle = pygame.Rect((SCREEN_WIDTH / 2) - (paddle_width / 2),
+                            SCREEN_HEIGHT - 100, paddle_width, PADDLE_HEIGHT)
 
 ball_movement_x = ball_degrees * delta_time
 ball_movement_y = ball_speed * delta_time
@@ -25,10 +38,8 @@ ball_position = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 
 def check_paddle_wall_collision():
     if player_paddle.left < 0:
-        print('hit wall left!!')
         player_paddle.move_ip(MOVEMENT_SPEED * delta_time, 0)
     elif (player_paddle.right) > SCREEN_WIDTH:
-        print('hit wall right!!')
         player_paddle.move_ip(-MOVEMENT_SPEED * delta_time, 0)
 
 
@@ -39,19 +50,24 @@ def check_ball_paddle_collision():
 
 
 def check_ball_wall_collision():
-    global ball_movement_y, ball_movement_x
+    global ball_movement_y, ball_movement_x, game_over_
     if ball_position.x < 0 or ball_position.x > SCREEN_WIDTH:
         ball_movement_x *= -1
     if ball_position.y < 0:
         ball_movement_y *= -1
+    if ball_position.y > (SCREEN_HEIGHT + 20) or ball_position.y < -20 or ball_position.x < -20 or ball_position.x > (SCREEN_WIDTH + 20):
+        if not game_over_:
+            game_over_ = True
+            game_over()
 
 
 def check_ball_block_collision(block: Block):
-    global ball_movement_y, ball_movement_x
+    global ball_movement_y, ball_movement_x, score
     # bottom and top
     if block.rectangle.left < ball_position.x < block.rectangle.right:
         if block.rectangle.top < ball_position.y < block.rectangle.bottom:
             block.hit_points -= 1
+            score += 1
             ball_movement_y *= -1
             if block.hit_points > 0:
                 block.change_color()
@@ -60,22 +76,23 @@ def check_ball_block_collision(block: Block):
 
         if block.rectangle.top > ball_position.y > block.rectangle.bottom:
             block.hit_points -= 1
+            score += 1
             ball_movement_x *= -1
             if block.hit_points > 0:
                 block.change_color()
             else:
                 block.remove = True
-            print('hit top')
+
     # left and right
     if block.rectangle.top > ball_position.y > block.rectangle.top:
         if ball_position.x > block.rectangle.left or ball_position.x < block.rectangle.right:
             block.hit_points -= 1
+            score += 1
             ball_movement_y *= -1
             if block.hit_points > 0:
                 block.change_color()
             else:
                 block.remove = True
-            print('hit side')
 
 
 def get_positions():
@@ -84,6 +101,41 @@ def get_positions():
     print('paddle left', player_paddle.left)
     print('player paddle_right', player_paddle.right)
     print('top player paddle: ', player_paddle.top)
+
+
+def game_over():
+    global running
+    try:
+        with open('HIGHSCORES.csv', 'r') as highscores_csv:
+            highscores = csv.DictReader(highscores_csv)
+            highscores = list(highscores)
+            for hs in highscores:
+                hs['high_score'] = int(hs['high_score'])
+    except FileNotFoundError:
+        with open('HIGHSCORES.csv', 'a') as highscores_csv:
+            fields = ['name', 'high_score']
+            new_row = {'name': USERNAME, 'high_score': score}
+            writer = csv.DictWriter(highscores_csv, fieldnames=fields)
+            writer.writeheader()
+            writer.writerow(new_row)
+    try:
+        if score > highscores[0]['high_score']:
+            with open('HIGHSCORES.csv', 'a') as highscores_csv:
+
+                new_row = {'name': USERNAME, 'high_score': score}
+                writer = csv.DictWriter(highscores_csv, fieldnames=fields)
+                writer.writerow(new_row)
+                highscores.append(new_row)
+    except UnboundLocalError:
+        new_row = {'name': 'None', 'high_score': 0}
+        highscores = []
+        highscores.append(new_row)
+    highscores.sort(key=itemgetter('high_score'), reverse=True)
+
+    game_over_text = f'GAME OVER\nName  Highscore   \n{highscores[0]['name']}   {highscores[0]['high_score']}\n\nYour score: {score}'
+    render_game_over_text = GAME_FONT.render(game_over_text, True, 'white')
+    screen.blit(render_game_over_text, ((SCREEN_WIDTH / 2) -
+                text_width, (SCREEN_HEIGHT / 2) - text_height))
 
 
 class Block():
@@ -132,6 +184,7 @@ count = 0
 color_num = 0
 
 while running:
+
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
     for event in pygame.event.get():
@@ -158,9 +211,10 @@ while running:
         check_ball_block_collision(block=block)
         if block.remove:
             blocks.remove(block)
-            ball_movement_y *= 1.03
+            ball_movement_y *= 1.02
             player_paddle.width -= 5
-            ball_movement_x += random.randint(-10, 10)
+            ball_movement_x += random.randint(-5, 5)
+            score += 5
 
     keys = pygame.key.get_pressed()
 
@@ -171,16 +225,18 @@ while running:
     if keys[pygame.K_p]:
         get_positions()
 
-    # flip() the display to put your work on screen
-
-    # limits FPS to 60
-    # dt is delta time in seconds since last frame, used for framerate-
-    # independent physics.
     delta_time = clock.tick(60) / 1000
     check_paddle_wall_collision()
     check_ball_wall_collision()
     check_ball_paddle_collision()
+
+    scoreboard_text = f'Score: {score}'
+    scoreboard = GAME_FONT.render(scoreboard_text, True, 'white')
+    text_width, text_height = GAME_FONT.size(scoreboard_text)
+    screen.blit(scoreboard, (0, (SCREEN_HEIGHT - text_height)))
+    if game_over_:
+        game_over()
     pygame.display.update()
-    print(ball_speed)
+
 
 pygame.quit()
