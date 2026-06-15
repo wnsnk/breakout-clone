@@ -6,7 +6,7 @@ This is a clone of the 80s hit game Breakout i made for the assignment on Day 87
 ## Installation
 - Clone repository, create virtual environment and install dependencies:
 ```bash
-git clone https://github.com/wnsnk/breakout-clone
+git clone https://github.com/wnsnk/breakout-clone.git
 cd breakout-clone
 python3 -m venv .venv
 source .venv/bin/activate
